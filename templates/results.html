@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Oil Price Game - Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Oil Price Game</h1>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-small">Back to Dashboard</a>
+        </div>
+        
+        <div class="content">
+            {% if error %}
+                <div class="card">
+                    <div class="error">{{ error }}</div>
+                    <p><a href="{{ url_for('dashboard') }}">Return to dashboard</a></p>
+                </div>
+            {% else %}
+                <!-- Results Header -->
+                <div class="card results-header">
+                    <h2>Week {{ week }} Results</h2>
+                    <div class="actual-price">
+                        <div class="label">Actual Brent Oil Price</div>
+                        <div class="price">${{ "%.2f"|format(actual_price) }}/barrel</div>
+                    </div>
+                </div>
+                
+                <!-- Results Table -->
+                <div class="card">
+                    <h3>Scores</h3>
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Guess</th>
+                                <th>Difference</th>
+                                <th>Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ result.username }}</td>
+                                    <td>${{ "%.2f"|format(result.guess) }}</td>
+                                    <td>${{ "%.2f"|format([result.guess - actual_price]|abs|first) }}</td>
+                                    <td><strong>{{ result.points }}</strong></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

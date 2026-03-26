@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Oil Price Game - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Oil Price Game</h1>
+            <div class="user-info">
+                <span>Welcome, {{ user }}!</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-small">Logout</a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Prediction Form -->
+            <div class="card">
+                <h2>Week {{ week_number }} Prediction</h2>
+                
+                {% if submitted %}
+                    <div class="success">You have already submitted your prediction for this week!</div>
+                    <p><a href="{{ url_for('results', week=week_number) }}">View results</a></p>
+                {% else %}
+                    <form id="predictionForm">
+                        <div class="form-group">
+                            <label for="price_guess">Your Brent Oil Price Estimate (USD/barrel):</label>
+                            <input type="number" id="price_guess" name="price_guess" step="0.01" min="0" max="500" placeholder="e.g., 75.50" required>
+                        </div>
+                        <p class="info">Submit your estimate for the Brent crude oil price at end of week {{ week_number }}</p>
+                        <button type="submit" class="btn">Submit Prediction</button>
+                    </form>
+                    <div id="message"></div>
+                {% endif %}
+            </div>
+            
+            <!-- User Stats -->
+            <div class="card">
+                <h2>Your Stats</h2>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Total Points</div>
+                        <div class="stat-value">{{ user_stats.total_points }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Weeks Participated</div>
+                        <div class="stat-value">{{ user_stats.weeks_participated }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Leaderboard -->
+            <div class="card">
+                <h2>Leaderboard</h2>
+                <table class="leaderboard">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Total Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in leaderboard %}
+                            <tr {% if entry.username == user %}class="current-user"{% endif %}>
+                                <td>{{ entry.rank }}</td>
+                                <td>{{ entry.username }}</td>
+                                <td>{{ entry.points }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const price = document.getElementById('price_guess').value;
+            
+            const formData = new FormData();
+            formData.append('price_guess', price);
+            
+            const response = await fetch('{{ url_for("submit_prediction") }}', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            const messagDiv = document.getElementById('message');
+            
+            if (response.ok) {
+                messagDiv.innerHTML = '<div class="success">' + result.message + '</div>';
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                messagDiv.innerHTML = '<div class="error">' + result.error + '</div>';
+            }
+        });
+    </script>
+</body>
+</html>
